@@ -1,0 +1,14 @@
+appId: com.promptlib.app
+productName: PromptLib
+directories:
+  buildResources: resources
+  output: dist
+files:
+  - out/**/*
+mac:
+  target:
+    - dmg
+    - zip
+  artifactName: ${name}-${version}-${arch}.${ext}
+dmg:
+  artifactName: ${name}-${version}.${ext}
