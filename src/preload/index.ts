@@ -13,6 +13,8 @@ const api: ElectronAPI = {
   searchAllPrompts: (query) => ipcRenderer.invoke('search-all-prompts', query),
   renameFolder: (oldPath, newPath) => ipcRenderer.invoke('rename-folder', oldPath, newPath),
   deleteFolder: (folderPath) => ipcRenderer.invoke('delete-folder', folderPath),
+  getFolderContext: (folderPath) => ipcRenderer.invoke('get-folder-context', folderPath),
+  setFolderContext: (folderPath, context) => ipcRenderer.invoke('set-folder-context', folderPath, context),
   copyToClipboard: (text) => ipcRenderer.invoke('copy-to-clipboard', text),
   exportPromptAsMarkdown: (id) => ipcRenderer.invoke('export-prompt-as-markdown', id),
   importMarkdown: () => ipcRenderer.invoke('import-markdown'),
@@ -20,6 +22,7 @@ const api: ElectronAPI = {
   updateSettings: (settings) => ipcRenderer.invoke('update-settings', settings),
   hidePalette: () => ipcRenderer.invoke('hide-palette'),
   resizePalette: (height) => ipcRenderer.invoke('resize-palette', height),
+  rebuildMenu: () => ipcRenderer.invoke('rebuild-menu'),
   onOpenCommandPalette: (callback: () => void) => {
     ipcRenderer.on('open-command-palette', callback)
     return () => {

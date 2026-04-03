@@ -2,7 +2,7 @@
 
 **PromptLib** est une application desktop pour macOS qui permet d'ecrire, organiser et retrouver rapidement vos prompts IA en Markdown.
 
-![PromptLib](resources/icon.png)
+<img src="resources/icon.png" alt="PromptLib" width="128">
 
 ---
 

@@ -15,12 +15,14 @@ export interface AppSettings {
   theme: 'light' | 'dark' | 'system'
   editorFontSize: number
   autoSaveDelay: number
+  language: 'fr' | 'en' | 'es' | 'pt' | 'de'
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'system',
   editorFontSize: 14,
-  autoSaveDelay: 500
+  autoSaveDelay: 500,
+  language: 'fr'
 }
 
 export interface SearchResult {
@@ -42,6 +44,8 @@ export interface ElectronAPI {
   getAllTags(): Promise<string[]>
   renameFolder(oldPath: string, newPath: string): Promise<void>
   deleteFolder(folderPath: string): Promise<void>
+  getFolderContext(folderPath: string): Promise<string>
+  setFolderContext(folderPath: string, context: string): Promise<void>
   searchAllPrompts(query: string): Promise<SearchResult[]>
   copyToClipboard(text: string): Promise<void>
   exportPromptAsMarkdown(id: string): Promise<void>
@@ -50,5 +54,6 @@ export interface ElectronAPI {
   updateSettings(settings: Partial<AppSettings>): Promise<AppSettings>
   hidePalette(): Promise<void>
   resizePalette(height: number): Promise<void>
+  rebuildMenu(): Promise<void>
   onOpenCommandPalette(callback: () => void): () => void
 }

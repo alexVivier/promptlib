@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { PromptMeta } from '../../../../shared/types'
 import { PromptListItem } from './PromptListItem'
 
@@ -6,9 +7,11 @@ interface PromptListProps {
 }
 
 export function PromptList({ prompts }: PromptListProps) {
+  const { t } = useTranslation()
+
   if (prompts.length === 0) {
     return (
-      <div className="px-3 py-6 text-center text-sm text-zinc-400">Aucun prompt</div>
+      <div className="px-3 py-6 text-center text-sm text-zinc-400 fade-in">{t('noPrompts')}</div>
     )
   }
 

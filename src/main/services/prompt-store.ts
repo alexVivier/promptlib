@@ -154,6 +154,14 @@ export function renameFolder(oldPath: string, newPath: string): void {
   }
 
   writeIndex(index)
+
+  // Sync folder context on rename
+  const contexts = readFolderContexts()
+  if (contexts[oldPath]) {
+    contexts[normalized] = contexts[oldPath]
+    delete contexts[oldPath]
+    writeFolderContexts(contexts)
+  }
 }
 
 export interface SearchResult {
@@ -199,6 +207,38 @@ export function searchAllPrompts(query: string): SearchResult[] {
   return results
 }
 
+// --- Folder context ---
+
+const FOLDER_CONTEXTS_PATH = join(app.getPath('userData'), 'folder-contexts.json')
+
+function readFolderContexts(): Record<string, string> {
+  if (existsSync(FOLDER_CONTEXTS_PATH)) {
+    return JSON.parse(readFileSync(FOLDER_CONTEXTS_PATH, 'utf-8'))
+  }
+  return {}
+}
+
+function writeFolderContexts(contexts: Record<string, string>): void {
+  const tmp = FOLDER_CONTEXTS_PATH + '.tmp'
+  writeFileSync(tmp, JSON.stringify(contexts, null, 2), 'utf-8')
+  renameSync(tmp, FOLDER_CONTEXTS_PATH)
+}
+
+export function getFolderContext(folderPath: string): string {
+  const contexts = readFolderContexts()
+  return contexts[folderPath] || ''
+}
+
+export function setFolderContext(folderPath: string, context: string): void {
+  const contexts = readFolderContexts()
+  if (context.trim()) {
+    contexts[folderPath] = context
+  } else {
+    delete contexts[folderPath]
+  }
+  writeFolderContexts(contexts)
+}
+
 export function deleteFolder(folderPath: string): void {
   const index = readIndex()
 
@@ -214,4 +254,11 @@ export function deleteFolder(folderPath: string): void {
   }
 
   writeIndex(index)
+
+  // Clean up folder context
+  const contexts = readFolderContexts()
+  if (contexts[folderPath]) {
+    delete contexts[folderPath]
+    writeFolderContexts(contexts)
+  }
 }

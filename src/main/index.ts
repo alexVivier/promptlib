@@ -1,6 +1,8 @@
 import { app, BrowserWindow, shell, Menu, globalShortcut, ipcMain, screen } from 'electron'
 import { join } from 'path'
 import { registerIpcHandlers } from './ipc'
+import { getMenuLabels } from './menu-labels'
+import { getSettings } from './services/settings-store'
 
 const isDev = !app.isPackaged
 const isMac = process.platform === 'darwin'
@@ -8,79 +10,86 @@ const isMac = process.platform === 'darwin'
 let mainWindow: BrowserWindow | null = null
 let paletteWindow: BrowserWindow | null = null
 
-const menuTemplate: Electron.MenuItemConstructorOptions[] = [
-  ...(isMac
-    ? [
+function buildMenu(): void {
+  const settings = getSettings()
+  const labels = getMenuLabels(settings.language)
+
+  const menuTemplate: Electron.MenuItemConstructorOptions[] = [
+    ...(isMac
+      ? [
+          {
+            label: app.name,
+            submenu: [
+              { role: 'about' as const },
+              { type: 'separator' as const },
+              { role: 'hide' as const },
+              { role: 'hideOthers' as const },
+              { role: 'unhide' as const },
+              { type: 'separator' as const },
+              { role: 'quit' as const }
+            ]
+          }
+        ]
+      : []),
+    {
+      label: labels.file,
+      submenu: [
         {
-          label: app.name,
-          submenu: [
-            { role: 'about' as const },
-            { type: 'separator' as const },
-            { role: 'hide' as const },
-            { role: 'hideOthers' as const },
-            { role: 'unhide' as const },
-            { type: 'separator' as const },
-            { role: 'quit' as const }
-          ]
-        }
+          label: labels.newPrompt,
+          accelerator: 'CmdOrCtrl+N',
+          click: () => {
+            mainWindow?.webContents.send('menu-new-prompt')
+          }
+        },
+        {
+          label: labels.importMarkdown,
+          accelerator: 'CmdOrCtrl+Shift+I',
+          click: () => {
+            mainWindow?.webContents.send('menu-import-markdown')
+          }
+        },
+        { type: 'separator' as const },
+        isMac ? { role: 'close' as const } : { role: 'quit' as const }
       ]
-    : []),
-  {
-    label: 'Fichier',
-    submenu: [
-      {
-        label: 'Nouveau prompt',
-        accelerator: 'CmdOrCtrl+N',
-        click: () => {
-          mainWindow?.webContents.send('menu-new-prompt')
-        }
-      },
-      {
-        label: 'Importer Markdown...',
-        accelerator: 'CmdOrCtrl+Shift+I',
-        click: () => {
-          mainWindow?.webContents.send('menu-import-markdown')
-        }
-      },
-      { type: 'separator' as const },
-      isMac ? { role: 'close' as const } : { role: 'quit' as const }
-    ]
-  },
-  {
-    label: 'Edition',
-    submenu: [
-      { role: 'undo' as const },
-      { role: 'redo' as const },
-      { type: 'separator' as const },
-      { role: 'cut' as const },
-      { role: 'copy' as const },
-      { role: 'paste' as const },
-      { role: 'selectAll' as const }
-    ]
-  },
-  {
-    label: 'Affichage',
-    submenu: [
-      { role: 'reload' as const },
-      { role: 'forceReload' as const },
-      { role: 'toggleDevTools' as const },
-      { type: 'separator' as const },
-      { role: 'resetZoom' as const },
-      { role: 'zoomIn' as const },
-      { role: 'zoomOut' as const },
-      { type: 'separator' as const },
-      { role: 'togglefullscreen' as const }
-    ]
-  },
-  {
-    label: 'Fenêtre',
-    submenu: [
-      { role: 'minimize' as const },
-      { role: 'zoom' as const },
-      ...(isMac ? [{ type: 'separator' as const }, { role: 'front' as const }] : [])
-    ]
-  }
-]
+    },
+    {
+      label: labels.edit,
+      submenu: [
+        { role: 'undo' as const },
+        { role: 'redo' as const },
+        { type: 'separator' as const },
+        { role: 'cut' as const },
+        { role: 'copy' as const },
+        { role: 'paste' as const },
+        { role: 'selectAll' as const }
+      ]
+    },
+    {
+      label: labels.view,
+      submenu: [
+        { role: 'reload' as const },
+        { role: 'forceReload' as const },
+        { role: 'toggleDevTools' as const },
+        { type: 'separator' as const },
+        { role: 'resetZoom' as const },
+        { role: 'zoomIn' as const },
+        { role: 'zoomOut' as const },
+        { type: 'separator' as const },
+        { role: 'togglefullscreen' as const }
+      ]
+    },
+    {
+      label: labels.window,
+      submenu: [
+        { role: 'minimize' as const },
+        { role: 'zoom' as const },
+        ...(isMac ? [{ type: 'separator' as const }, { role: 'front' as const }] : [])
+      ]
+    }
+  ]
+
+  Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate))
+}
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -123,18 +132,13 @@ function getCursorDisplay(): Electron.Display {
 
 function createPaletteWindow(): void {
   const display = getCursorDisplay()
-  const { x: dx, y: dy, width: dw } = display.workArea
-  const paletteWidth = 696  // 680 content + 16 padding
-  const initialHeight = 72  // ~56 content + 16 padding
-  const x = Math.round(dx + (dw - paletteWidth) / 2)
-  const y = dy + 180
+  const { x, y, width, height } = display.workArea
 
   paletteWindow = new BrowserWindow({
-    width: paletteWidth,
-    height: initialHeight,
-    maxHeight: 460,
     x,
     y,
+    width,
+    height,
     show: false,
     frame: false,
     transparent: true,
@@ -174,14 +178,17 @@ function togglePalette(): void {
     createPaletteWindow()
     paletteWindow!.once('ready-to-show', () => {
       paletteWindow!.show()
+      paletteWindow!.focus()
+      paletteWindow!.webContents.focus()
     })
   } else {
-    // Re-center on current cursor screen
+    // Re-position to current cursor display
     const display = getCursorDisplay()
-    const { x: dx, y: dy, width: dw } = display.workArea
-    const x = Math.round(dx + (dw - 696) / 2)
-    paletteWindow.setPosition(x, dy + 180)
+    const { x: dx, y: dy, width: dw, height: dh } = display.workArea
+    paletteWindow.setBounds({ x: dx, y: dy, width: dw, height: dh })
     paletteWindow.show()
+    paletteWindow.focus()
+    paletteWindow.webContents.focus()
   }
 }
 
@@ -192,19 +199,19 @@ function hidePalette(): void {
 }
 
 app.whenReady().then(() => {
-  Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate))
+  buildMenu()
   registerIpcHandlers()
 
   ipcMain.handle('hide-palette', () => {
     hidePalette()
   })
 
-  ipcMain.handle('resize-palette', (_, height: number) => {
-    if (paletteWindow) {
-      const withPadding = height + 16 // 8px padding top + bottom
-      const clamped = Math.min(Math.max(withPadding, 72), 480)
-      paletteWindow.setSize(696, clamped)
-    }
+  ipcMain.handle('resize-palette', () => {
+    // No-op: palette window is now full-screen with CSS-based layout
+  })
+
+  ipcMain.handle('rebuild-menu', () => {
+    buildMenu()
   })
 
   createWindow()

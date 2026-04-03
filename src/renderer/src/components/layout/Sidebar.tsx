@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { usePromptStore } from '../../stores/promptStore'
 import { useUIStore } from '../../stores/uiStore'
 import { SearchBar } from '../common/SearchBar'
@@ -19,7 +20,8 @@ export function Sidebar() {
     setSelectedFolder,
     setSelectedTag
   } = usePromptStore()
-  const { searchQuery } = useUIStore()
+  const { searchQuery, setEditingFolderContext } = useUIStore()
+  const { t } = useTranslation()
 
   const [showNewFolder, setShowNewFolder] = useState(false)
   const [newFolderName, setNewFolderName] = useState('')
@@ -84,25 +86,25 @@ export function Sidebar() {
 
   const startRenaming = (folder: string) => {
     setRenamingFolder(folder)
-    setRenameValue(folder === '/' ? '' : folder.replace(/^\//, ''))
+    setRenameValue(folder.replace(/^\//, ''))
     setFolderMenuOpen(null)
   }
 
   return (
-    <div className="w-60 shrink-0 bg-zinc-50 dark:bg-zinc-800/50 border-r border-zinc-200 dark:border-zinc-700 flex flex-col overflow-hidden titlebar-no-drag">
+    <div className="w-60 shrink-0 bg-zinc-50 dark:bg-zinc-800/50 border-r border-zinc-200 dark:border-zinc-700 flex flex-col overflow-hidden titlebar-no-drag sidebar-enter">
       {/* New prompt button */}
       <div className="p-3 space-y-1.5">
         <button
           onClick={() => createPrompt(selectedFolder || '/')}
-          className="w-full px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
+          className="w-full px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-all interactive btn-press"
         >
-          + Nouveau prompt
+          {t('newPrompt')}
         </button>
         <button
           onClick={() => importMarkdown()}
-          className="w-full px-3 py-1.5 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded-lg text-xs font-medium transition-colors"
+          className="w-full px-3 py-1.5 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded-lg text-xs font-medium transition-all interactive btn-press"
         >
-          Importer .md
+          {t('importMd')}
         </button>
       </div>
 
@@ -114,19 +116,26 @@ export function Sidebar() {
       {/* Folders */}
       <div className="px-3 pb-2">
         <div className="flex items-center justify-between mb-1">
-          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Dossiers</p>
+          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">{t('folders')}</p>
           <button
-            onClick={() => setShowNewFolder(!showNewFolder)}
-            className="text-zinc-400 hover:text-blue-500 transition-colors text-sm leading-none"
-            title="Nouveau dossier"
+            onClick={() => {
+              setShowNewFolder(!showNewFolder)
+              setNewFolderName('')
+            }}
+            className={`transition-colors text-sm leading-none ${
+              showNewFolder
+                ? 'text-red-400 hover:text-red-500'
+                : 'text-zinc-400 hover:text-blue-500'
+            }`}
+            title={showNewFolder ? t('cancel') : t('newFolder')}
           >
-            +
+            {showNewFolder ? '\u00d7' : '+'}
           </button>
         </div>
 
         {/* New folder input */}
         {showNewFolder && (
-          <div className="flex gap-1 mb-1">
+          <div className="flex gap-1 mb-1 dialog-enter">
             <input
               autoFocus
               value={newFolderName}
@@ -138,12 +147,12 @@ export function Sidebar() {
                   setNewFolderName('')
                 }
               }}
-              placeholder="Nom du dossier..."
-              className="flex-1 px-2 py-1 text-xs bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded outline-none focus:border-blue-500"
+              placeholder={t('folderNamePlaceholder')}
+              className="flex-1 px-2 py-1 text-xs bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded outline-none focus:border-blue-500 transition-colors"
             />
             <button
               onClick={handleCreateFolder}
-              className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+              className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 interactive btn-press"
             >
               OK
             </button>
@@ -154,17 +163,17 @@ export function Sidebar() {
           {/* "Tous" button */}
           <button
             onClick={() => setSelectedFolder(null)}
-            className={`w-full text-left px-2 py-1 rounded text-sm transition-colors ${
+            className={`w-full text-left px-2 py-1 rounded text-sm transition-all ${
               !selectedFolder
                 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                 : 'hover:bg-zinc-200 dark:hover:bg-zinc-700'
             }`}
           >
-            Tous
+            {t('all')}
           </button>
 
           {/* Folder list */}
-          {folders.map((folder) => (
+          {folders.filter((f) => f !== '/').map((folder) => (
             <div key={folder} className="group relative">
               {renamingFolder === folder ? (
                 <div className="flex gap-1">
@@ -181,50 +190,51 @@ export function Sidebar() {
                   />
                 </div>
               ) : (
-                <div className="flex items-center">
-                  <button
-                    onClick={() => setSelectedFolder(folder)}
-                    className={`flex-1 text-left px-2 py-1 rounded text-sm transition-colors truncate ${
-                      selectedFolder === folder
-                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                        : 'hover:bg-zinc-200 dark:hover:bg-zinc-700'
-                    }`}
+                <button
+                  onClick={() => setSelectedFolder(folder)}
+                  className={`w-full flex items-center justify-between px-2 py-1 rounded text-sm transition-all ${
+                    selectedFolder === folder
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                      : 'hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                  }`}
+                >
+                  <span className="truncate">{folder.replace(/^\//, '')}</span>
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setFolderMenuOpen(folderMenuOpen === folder ? null : folder)
+                    }}
+                    className="hidden group-hover:inline shrink-0 ml-1 px-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 text-xs"
+                    title={t('options')}
                   >
-                    {folder === '/' ? 'Général' : folder.replace(/^\//, '')}
-                  </button>
-
-                  {/* Folder actions (hidden until hover, not for root) */}
-                  {folder !== '/' && (
-                    <div className="hidden group-hover:flex items-center shrink-0">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setFolderMenuOpen(folderMenuOpen === folder ? null : folder)
-                        }}
-                        className="px-1 py-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 text-xs"
-                        title="Options"
-                      >
-                        &#8230;
-                      </button>
-                    </div>
-                  )}
-                </div>
+                    &#8230;
+                  </span>
+                </button>
               )}
 
               {/* Context menu */}
               {folderMenuOpen === folder && (
-                <div className="absolute right-0 top-full mt-0.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg z-20 min-w-32 py-1">
+                <div className="absolute right-0 top-full mt-0.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg z-20 min-w-32 py-1 lang-dropdown">
+                  <button
+                    onClick={() => {
+                      setEditingFolderContext(folder)
+                      setFolderMenuOpen(null)
+                    }}
+                    className="w-full text-left px-3 py-1.5 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                  >
+                    {t('context')}
+                  </button>
                   <button
                     onClick={() => startRenaming(folder)}
                     className="w-full text-left px-3 py-1.5 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
                   >
-                    Renommer
+                    {t('rename')}
                   </button>
                   <button
                     onClick={() => handleDeleteFolder(folder)}
                     className="w-full text-left px-3 py-1.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                   >
-                    Supprimer
+                    {t('delete')}
                   </button>
                 </div>
               )}
@@ -236,13 +246,13 @@ export function Sidebar() {
       {/* Tags */}
       {tags.length > 0 && (
         <div className="px-3 pb-2">
-          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Tags</p>
+          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">{t('tags')}</p>
           <div className="flex flex-wrap gap-1">
             {tags.map((tag) => (
               <button
                 key={tag}
                 onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
-                className={`px-2 py-0.5 rounded-full text-xs transition-colors ${
+                className={`px-2 py-0.5 rounded-full text-xs transition-all interactive ${
                   selectedTag === tag
                     ? 'bg-blue-500 text-white'
                     : 'bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600'
@@ -259,12 +269,14 @@ export function Sidebar() {
       <div className="flex-1 overflow-y-auto">
         <div className="px-3 py-1">
           <p className="text-[10px] text-zinc-400">
-            {filteredPrompts.length} prompt{filteredPrompts.length !== 1 ? 's' : ''}
-            {(selectedFolder || selectedTag || searchQuery.trim()) && ` (${prompts.length} au total)`}
+            {t('promptCount', { count: filteredPrompts.length })}
+            {(selectedFolder || selectedTag || searchQuery.trim()) &&
+              ` ${t('totalCount', { count: prompts.length })}`}
           </p>
         </div>
         <PromptList prompts={filteredPrompts} />
       </div>
+
     </div>
   )
 }

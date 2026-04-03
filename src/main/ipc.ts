@@ -49,6 +49,14 @@ export function registerIpcHandlers(): void {
     return promptStore.deleteFolder(folderPath)
   })
 
+  ipcMain.handle('get-folder-context', (_, folderPath: string) => {
+    return promptStore.getFolderContext(folderPath)
+  })
+
+  ipcMain.handle('set-folder-context', (_, folderPath: string, context: string) => {
+    return promptStore.setFolderContext(folderPath, context)
+  })
+
   ipcMain.handle('copy-to-clipboard', (_, text: string) => {
     clipboard.writeText(text)
   })

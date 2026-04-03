@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { SearchResult } from '../../../../shared/types'
 import { useUIStore } from '../../stores/uiStore'
 
 export function CommandPalette() {
   const { showCommandPalette, setShowCommandPalette } = useUIStore()
+  const { t } = useTranslation()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -44,7 +46,11 @@ export function CommandPalette() {
 
   const handleCopy = async (id: string) => {
     const prompt = await window.api.getPrompt(id)
-    await window.api.copyToClipboard(prompt.content)
+    const folderContext = await window.api.getFolderContext(prompt.folder)
+    const text = folderContext
+      ? folderContext + '\n\n---\n\n' + prompt.content
+      : prompt.content
+    await window.api.copyToClipboard(text)
     setCopiedId(id)
     setTimeout(() => setCopiedId(null), 1500)
   }
@@ -71,11 +77,11 @@ export function CommandPalette() {
 
   return (
     <div
-      className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-start justify-center pt-[18vh] z-50"
+      className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-start justify-center pt-[18vh] z-50 backdrop-enter"
       onClick={() => setShowCommandPalette(false)}
     >
       <div
-        className="liquid-glass relative rounded-2xl w-full max-w-xl overflow-hidden"
+        className="liquid-glass relative rounded-2xl w-full max-w-xl overflow-hidden palette-enter"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search input */}
@@ -98,7 +104,7 @@ export function CommandPalette() {
             value={query}
             onChange={(e) => handleQueryChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Rechercher dans tous les prompts..."
+            placeholder={t('searchAllPrompts')}
             className="flex-1 bg-transparent text-base font-light outline-none placeholder:text-zinc-400/60 dark:placeholder:text-zinc-500 text-zinc-800 dark:text-zinc-100"
           />
           <kbd className="glass-kbd px-2 py-0.5 rounded-md text-[11px] text-zinc-500 dark:text-zinc-400 font-mono shrink-0">
@@ -109,8 +115,8 @@ export function CommandPalette() {
         {/* Results */}
         <div className="max-h-80 overflow-y-auto">
           {query.trim() && results.length === 0 && (
-            <div className="px-5 py-10 text-center text-sm text-zinc-400/80 dark:text-zinc-500">
-              Aucun resultat pour &laquo; {query} &raquo;
+            <div className="px-5 py-10 text-center text-sm text-zinc-400/80 dark:text-zinc-500 fade-in">
+              {t('noResults', { query })}
             </div>
           )}
 
@@ -129,9 +135,11 @@ export function CommandPalette() {
                     <span className="font-medium text-sm truncate text-zinc-800 dark:text-zinc-100">
                       {result.title}
                     </span>
-                    <span className="text-[11px] text-zinc-400/70 dark:text-zinc-500 shrink-0">
-                      {result.folder === '/' ? 'General' : result.folder.replace(/^\//, '')}
-                    </span>
+                    {result.folder !== '/' && (
+                      <span className="text-[11px] text-zinc-400/70 dark:text-zinc-500 shrink-0">
+                        {result.folder.replace(/^\//, '')}
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-zinc-500/80 dark:text-zinc-400/60 mt-0.5 truncate">
                     {result.snippet}
@@ -154,7 +162,7 @@ export function CommandPalette() {
                     e.stopPropagation()
                     handleCopy(result.id)
                   }}
-                  className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium text-white ${
+                  className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium text-white interactive btn-press ${
                     copiedId === result.id
                       ? 'glass-copy-btn-success'
                       : index === selectedIndex
@@ -162,7 +170,7 @@ export function CommandPalette() {
                         : 'glass-pill text-zinc-600 dark:text-zinc-300'
                   }`}
                 >
-                  {copiedId === result.id ? 'Copie !' : 'Copier'}
+                  {copiedId === result.id ? t('copied') : t('copy')}
                 </button>
               </div>
             </div>
@@ -176,19 +184,19 @@ export function CommandPalette() {
               <kbd className="glass-kbd px-1.5 py-0.5 rounded font-mono text-[10px]">
                 &#8593;&#8595;
               </kbd>{' '}
-              naviguer
+              {t('navigate')}
             </span>
             <span>
               <kbd className="glass-kbd px-1.5 py-0.5 rounded font-mono text-[10px]">
                 &#9166;
               </kbd>{' '}
-              copier
+              {t('copyAction')}
             </span>
             <span>
               <kbd className="glass-kbd px-1.5 py-0.5 rounded font-mono text-[10px]">
                 Esc
               </kbd>{' '}
-              fermer
+              {t('close')}
             </span>
           </div>
         )}

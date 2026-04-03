@@ -2,6 +2,7 @@ import { useCallback, useRef } from 'react'
 import CodeMirror from '@uiw/react-codemirror'
 import { markdown } from '@codemirror/lang-markdown'
 import { oneDark } from '@codemirror/theme-one-dark'
+import { EditorView } from '@codemirror/view'
 import { usePromptStore } from '../../stores/promptStore'
 import { useResolvedDark } from '../../hooks/useTheme'
 
@@ -31,7 +32,7 @@ export function MarkdownEditor() {
     <CodeMirror
       value={activePrompt.content}
       onChange={handleChange}
-      extensions={[markdown()]}
+      extensions={[markdown(), EditorView.lineWrapping]}
       theme={isDark ? oneDark : undefined}
       className="h-full"
       basicSetup={{
