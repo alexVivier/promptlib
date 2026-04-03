@@ -13,7 +13,7 @@
     "package:all": "electron-vite build && electron-builder --config electron-builder.yml --mac --win --linux"
   },
   "keywords": [],
-  "author": "",
+  "author": "Alexis Vivier <alexis@nevertoolate.studio>",
   "license": "ISC",
   "description": "Desktop app for writing and saving prompts in Markdown",
   "dependencies": {
