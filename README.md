@@ -1,6 +1,6 @@
 # PromptLib
 
-**PromptLib** est une application desktop pour macOS qui permet d'ecrire, organiser et retrouver rapidement vos prompts IA en Markdown.
+**PromptLib** est une application desktop pour macOS, Windows et Linux qui permet d'ecrire, organiser et retrouver rapidement vos prompts IA en Markdown.
 
 <img src="resources/icon.png" alt="PromptLib" width="128">
 
@@ -10,14 +10,30 @@
 
 ### Telecharger la derniere version
 
-Rendez-vous sur la page [**Releases**](../../releases/latest) du projet GitHub et telechargez le fichier correspondant a votre machine :
+Rendez-vous sur la page [**Releases**](../../releases/latest) du projet GitHub et telechargez le fichier correspondant a votre systeme :
+
+#### macOS
 
 | Fichier | Description |
 |---------|-------------|
 | `promptlib-x.x.x.dmg` | Installeur macOS (glisser dans Applications) |
 | `promptlib-x.x.x-arm64.zip` | Archive ZIP pour Mac Apple Silicon (M1/M2/M3/M4) |
 
-### Installer depuis le DMG
+#### Windows
+
+| Fichier | Description |
+|---------|-------------|
+| `promptlib-x.x.x-x64.exe` | Installeur Windows (NSIS) |
+| `promptlib-x.x.x-x64.zip` | Archive ZIP portable (pas d'installation requise) |
+
+#### Linux
+
+| Fichier | Description |
+|---------|-------------|
+| `promptlib-x.x.x-x64.AppImage` | AppImage universel (la plupart des distributions) |
+| `promptlib-x.x.x-x64.deb` | Paquet Debian/Ubuntu |
+
+### Installer sur macOS
 
 1. Telechargez le fichier `.dmg`
 2. Double-cliquez pour l'ouvrir
@@ -25,6 +41,25 @@ Rendez-vous sur la page [**Releases**](../../releases/latest) du projet GitHub e
 4. Lancez l'app depuis le Launchpad ou le dossier Applications
 
 > **Note** : Au premier lancement, macOS peut afficher un avertissement car l'app n'est pas signee par le Mac App Store. Allez dans **Reglages Systeme > Confidentialite et securite** et cliquez sur **Ouvrir quand meme**.
+
+### Installer sur Windows
+
+1. Telechargez le fichier `.exe`
+2. Lancez l'installeur et suivez les instructions
+3. PromptLib sera disponible dans le menu Demarrer
+
+> **Note** : Windows SmartScreen peut afficher un avertissement car l'app n'est pas signee. Cliquez sur **Informations complementaires** puis **Executer quand meme**.
+
+### Installer sur Linux
+
+**AppImage** (recommande) :
+1. Telechargez le fichier `.AppImage`
+2. Rendez-le executable : `chmod +x promptlib-x.x.x-x64.AppImage`
+3. Lancez-le : `./promptlib-x.x.x-x64.AppImage`
+
+**Debian/Ubuntu** :
+1. Telechargez le fichier `.deb`
+2. Installez-le : `sudo dpkg -i promptlib-x.x.x-x64.deb`
 
 ---
 
@@ -45,10 +80,38 @@ Rendez-vous sur la page [**Releases**](../../releases/latest) du projet GitHub e
 - **Dossiers** : classez vos prompts par categorie (Cmd+clic sur un dossier pour filtrer)
   - Creer un dossier avec le bouton `+` a cote de "Dossiers"
   - Renommer ou supprimer un dossier en survolant et cliquant sur `...`
+  - **Contexte de dossier** : definissez un texte de contexte partage par tous les prompts d'un dossier (voir section dediee ci-dessous)
 - **Tags** : ajoutez des tags en tapant dans le champ "Ajouter un tag..." puis `Entree`
   - Supprimez un tag avec le `x` a cote du tag
   - Filtrez par tag en cliquant dessus dans la sidebar
 - **Favoris** : marquez un prompt en favori avec l'etoile. Les favoris apparaissent en haut de la liste
+
+### Contexte de dossier
+
+Le **contexte de dossier** permet de definir un texte qui sera automatiquement ajoute au debut de chaque prompt lorsque vous le copiez depuis ce dossier. C'est utile pour partager des instructions communes a un ensemble de prompts sans avoir a les repeter dans chacun.
+
+**Exemple concret** : vous avez un dossier "React" contenant plusieurs prompts. Plutot que d'ecrire "Tu es un expert React/TypeScript. Utilise toujours des composants fonctionnels." dans chaque prompt, vous definissez ce texte comme contexte du dossier. Il sera automatiquement inclus a chaque copie.
+
+**Comment l'utiliser :**
+
+1. Survolez un dossier dans la sidebar et cliquez sur `...`
+2. Selectionnez **Contexte**
+3. Redigez votre texte de contexte dans la fenetre qui s'ouvre
+4. Sauvegardez avec le bouton **Sauvegarder** ou `Cmd+Enter`
+
+**Comment ca fonctionne a la copie :**
+
+Quand vous copiez un prompt (via `Copier`, `Cmd+Shift+C`, ou la palette de commandes), si le dossier du prompt a un contexte defini, le texte copie dans le presse-papiers sera :
+
+```
+[contexte du dossier]
+
+---
+
+[contenu du prompt]
+```
+
+Si aucun contexte n'est defini, seul le contenu du prompt est copie.
 
 ### Modes d'affichage
 
@@ -68,7 +131,7 @@ Rendez-vous sur la page [**Releases**](../../releases/latest) du projet GitHub e
 Cliquez sur le bouton de theme dans la barre de statut (en bas a droite) pour basculer entre :
 - **Clair** : theme lumineux
 - **Sombre** : theme fonce
-- **Auto** : suit le reglage systeme de macOS
+- **Auto** : suit le reglage systeme de votre OS
 
 ---
 
@@ -102,9 +165,11 @@ La barre en bas de la fenetre affiche :
 
 Vos prompts sont stockes localement sur votre machine dans :
 
-```
-~/Library/Application Support/PromptLib/prompts/
-```
+| OS | Emplacement |
+|----|-------------|
+| macOS | `~/Library/Application Support/PromptLib/prompts/` |
+| Windows | `%APPDATA%\PromptLib\prompts\` |
+| Linux | `~/.config/PromptLib/prompts/` |
 
 Chaque prompt est un fichier JSON individuel. Un fichier `index.json` contient les metadonnees pour un chargement rapide. Aucune donnee n'est envoyee sur internet.
 
@@ -141,10 +206,13 @@ npm run typecheck
 npm run build
 ```
 
-### Creer le package distributable (DMG + ZIP)
+### Creer le package distributable
 
 ```bash
-npm run package
+npm run package          # macOS (DMG + ZIP)
+npm run package:win      # Windows (NSIS + ZIP)
+npm run package:linux    # Linux (AppImage + deb)
+npm run package:all      # Toutes les plateformes
 ```
 
 Les fichiers sont generes dans le dossier `dist/`.

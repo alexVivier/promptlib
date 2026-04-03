@@ -1,13 +1,16 @@
 {
   "name": "promptlib",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit",
-    "package": "electron-vite build && electron-builder --config electron-builder.yml"
+    "package": "electron-vite build && electron-builder --config electron-builder.yml",
+    "package:win": "electron-vite build && electron-builder --config electron-builder.yml --win",
+    "package:linux": "electron-vite build && electron-builder --config electron-builder.yml --linux",
+    "package:all": "electron-vite build && electron-builder --config electron-builder.yml --mac --win --linux"
   },
   "keywords": [],
   "author": "",

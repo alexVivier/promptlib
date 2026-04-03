@@ -12,3 +12,17 @@ mac:
   artifactName: ${name}-${version}-${arch}.${ext}
 dmg:
   artifactName: ${name}-${version}.${ext}
+win:
+  target:
+    - nsis
+    - zip
+  artifactName: ${name}-${version}-${arch}.${ext}
+nsis:
+  oneClick: true
+  allowToChangeInstallationDirectory: false
+linux:
+  target:
+    - AppImage
+    - deb
+  artifactName: ${name}-${version}-${arch}.${ext}
+  category: Utility

@@ -64,8 +64,60 @@ jobs:
             dist/*.dmg
             dist/*.zip
 
+  build-windows:
+    needs: check-version
+    if: needs.check-version.outputs.should_release == 'true'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run package:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: win-dist
+          path: |
+            dist/*.exe
+            dist/*.zip
+
+  build-linux:
+    needs: check-version
+    if: needs.check-version.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run package:linux
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-dist
+          path: |
+            dist/*.AppImage
+            dist/*.deb
+
   release:
-    needs: [check-version, build-mac]
+    needs: [check-version, build-mac, build-windows, build-linux]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -80,6 +132,16 @@ jobs:
           name: mac-dist
           path: dist
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: win-dist
+          path: dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-dist
+          path: dist
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -90,3 +152,6 @@ jobs:
           files: |
             dist/*.dmg
             dist/*.zip
+            dist/*.exe
+            dist/*.AppImage
+            dist/*.deb
