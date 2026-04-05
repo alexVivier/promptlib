@@ -131,6 +131,9 @@ export function createFolder(folderPath: string): void {
     customFolders = JSON.parse(readFileSync(foldersFile, 'utf-8'))
   }
   const normalized = folderPath.startsWith('/') ? folderPath : `/${folderPath}`
+  if (normalized.includes('..') || normalized.includes('\0')) {
+    throw new Error('Invalid folder path')
+  }
   if (!customFolders.includes(normalized)) {
     customFolders.push(normalized)
     writeFileSync(foldersFile, JSON.stringify(customFolders, null, 2), 'utf-8')
@@ -140,6 +143,9 @@ export function createFolder(folderPath: string): void {
 export function renameFolder(oldPath: string, newPath: string): void {
   const index = readIndex()
   const normalized = newPath.startsWith('/') ? newPath : `/${newPath}`
+  if (normalized.includes('..') || normalized.includes('\0')) {
+    throw new Error('Invalid folder path')
+  }
 
   for (const meta of index) {
     if (meta.folder === oldPath) {

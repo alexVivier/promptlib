@@ -101,7 +101,9 @@ function createWindow(): void {
     titleBarStyle: 'hiddenInset',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      contextIsolation: true,
+      sandbox: true,
+      nodeIntegration: false
     }
   })
 
@@ -149,7 +151,9 @@ function createPaletteWindow(): void {
     backgroundColor: '#00000000',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      contextIsolation: true,
+      sandbox: true,
+      nodeIntegration: false
     }
   })
 
@@ -204,10 +208,6 @@ app.whenReady().then(() => {
 
   ipcMain.handle('hide-palette', () => {
     hidePalette()
-  })
-
-  ipcMain.handle('resize-palette', () => {
-    // No-op: palette window is now full-screen with CSS-based layout
   })
 
   ipcMain.handle('rebuild-menu', () => {

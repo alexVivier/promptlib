@@ -53,7 +53,6 @@ export interface ElectronAPI {
   getSettings(): Promise<AppSettings>
   updateSettings(settings: Partial<AppSettings>): Promise<AppSettings>
   hidePalette(): Promise<void>
-  resizePalette(height: number): Promise<void>
   rebuildMenu(): Promise<void>
   onOpenCommandPalette(callback: () => void): () => void
 }

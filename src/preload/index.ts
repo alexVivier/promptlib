@@ -21,7 +21,6 @@ const api: ElectronAPI = {
   getSettings: () => ipcRenderer.invoke('get-settings'),
   updateSettings: (settings) => ipcRenderer.invoke('update-settings', settings),
   hidePalette: () => ipcRenderer.invoke('hide-palette'),
-  resizePalette: (height) => ipcRenderer.invoke('resize-palette', height),
   rebuildMenu: () => ipcRenderer.invoke('rebuild-menu'),
   onOpenCommandPalette: (callback: () => void) => {
     ipcRenderer.on('open-command-palette', callback)
