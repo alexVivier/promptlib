@@ -73,6 +73,12 @@ export default {
   folderContextHint: '⌘ + Enter pour sauvegarder',
   save: 'Enregistrer',
 
+  // Images
+  image: 'Image',
+  insertImage: 'Insérer une image',
+  imageTooLarge: 'Image trop volumineuse (max 10 Mo)',
+  unsupportedFormat: "Format d'image non supporté",
+
   // Language
   language: 'Langue'
 } as const

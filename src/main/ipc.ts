@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync } from 'fs'
 import { basename } from 'path'
 import * as promptStore from './services/prompt-store'
 import * as settingsStore from './services/settings-store'
+import * as imageStore from './services/image-store'
 
 export function registerIpcHandlers(): void {
   ipcMain.handle('get-prompts', () => {
@@ -85,6 +86,20 @@ export function registerIpcHandlers(): void {
       imported.push(prompt)
     }
     return imported
+  })
+
+  ipcMain.handle('save-image', (_, imageData: string, mimeType: string) => {
+    const buffer = Buffer.from(imageData, 'base64')
+    return imageStore.saveImageFromBuffer(buffer, mimeType)
+  })
+
+  ipcMain.handle('pick-and-save-image', async () => {
+    const { filePaths } = await dialog.showOpenDialog({
+      filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'] }],
+      properties: ['openFile']
+    })
+    if (filePaths.length === 0) return null
+    return imageStore.saveImageFromPath(filePaths[0])
   })
 
   ipcMain.handle('get-settings', () => {

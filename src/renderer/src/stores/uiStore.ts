@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { SupportedLanguage } from '../i18n'
+import type { EditorView } from '@codemirror/view'
 import i18n from '../i18n'
 
 type ViewMode = 'split' | 'editor' | 'preview'
@@ -15,6 +16,7 @@ interface UIState {
   theme: ThemeMode
   language: SupportedLanguage
   splitRatio: number
+  editorView: EditorView | null
 
   setViewMode: (mode: ViewMode) => void
   toggleSidebar: () => void
@@ -26,6 +28,7 @@ interface UIState {
   cycleTheme: () => void
   setLanguage: (lang: SupportedLanguage) => void
   setSplitRatio: (ratio: number) => void
+  setEditorView: (view: EditorView | null) => void
 }
 
 const THEME_KEY = 'promptlib-theme'
@@ -62,6 +65,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   theme: loadTheme(),
   language: initialLang,
   splitRatio: 0.5,
+  editorView: null,
 
   setViewMode: (mode) => set({ viewMode: mode }),
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
@@ -81,6 +85,7 @@ export const useUIStore = create<UIState>((set, get) => ({
     set({ theme: next })
   },
   setSplitRatio: (ratio) => set({ splitRatio: Math.max(0.2, Math.min(0.8, ratio)) }),
+  setEditorView: (view) => set({ editorView: view }),
   setLanguage: (lang) => {
     localStorage.setItem(LANGUAGE_KEY, lang)
     i18n.changeLanguage(lang)

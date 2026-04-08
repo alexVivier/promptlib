@@ -8,5 +8,7 @@ marked.setOptions({
 
 export function renderMarkdown(content: string): string {
   const html = marked.parse(content) as string
-  return DOMPurify.sanitize(html)
+  return DOMPurify.sanitize(html, {
+    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel|promptlib-image):)/i
+  })
 }

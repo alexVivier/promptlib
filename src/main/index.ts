@@ -1,8 +1,16 @@
-import { app, BrowserWindow, shell, Menu, globalShortcut, ipcMain, screen } from 'electron'
+import { app, BrowserWindow, shell, Menu, globalShortcut, ipcMain, screen, protocol, net } from 'electron'
 import { join } from 'path'
 import { registerIpcHandlers } from './ipc'
 import { getMenuLabels } from './menu-labels'
 import { getSettings } from './services/settings-store'
+import * as imageStore from './services/image-store'
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'promptlib-image',
+    privileges: { standard: true, secure: true, supportFetchAPI: true }
+  }
+])
 
 const isDev = !app.isPackaged
 const isMac = process.platform === 'darwin'
@@ -201,6 +209,12 @@ function hidePalette(): void {
 app.whenReady().then(() => {
   buildMenu()
   registerIpcHandlers()
+
+  protocol.handle('promptlib-image', (request) => {
+    const filename = request.url.replace('promptlib-image://', '')
+    const filePath = imageStore.getImagePath(filename)
+    return net.fetch(`file://${filePath}`)
+  })
 
   ipcMain.handle('hide-palette', () => {
     hidePalette()

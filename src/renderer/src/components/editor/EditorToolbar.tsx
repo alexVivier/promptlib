@@ -32,6 +32,16 @@ export function EditorToolbar() {
     setTimeout(() => setCopied(false), 1500)
   }
 
+  const handleInsertImage = async () => {
+    const uri = await window.api.pickAndSaveImage()
+    if (!uri) return
+    const view = useUIStore.getState().editorView
+    if (!view) return
+    const pos = view.state.selection.main.head
+    view.dispatch({ changes: { from: pos, insert: `![](${uri})` } })
+    view.focus()
+  }
+
   const handleExport = () => {
     window.api.exportPromptAsMarkdown(activePrompt.id)
   }
@@ -130,6 +140,13 @@ export function EditorToolbar() {
           title={t('exportMd')}
         >
           {t('export')}
+        </button>
+        <button
+          onClick={handleInsertImage}
+          className="px-2 py-1 text-xs bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-all interactive btn-press"
+          title={t('insertImage')}
+        >
+          {t('image')}
         </button>
         <button
           onClick={() => setShowDeleteConfirm(activePrompt.id)}

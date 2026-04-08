@@ -48,6 +48,8 @@ export interface ElectronAPI {
   setFolderContext(folderPath: string, context: string): Promise<void>
   searchAllPrompts(query: string): Promise<SearchResult[]>
   copyToClipboard(text: string): Promise<void>
+  saveImage(imageData: string, mimeType: string): Promise<string>
+  pickAndSaveImage(): Promise<string | null>
   exportPromptAsMarkdown(id: string): Promise<void>
   importMarkdown(): Promise<Prompt[]>
   getSettings(): Promise<AppSettings>
