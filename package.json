@@ -1,19 +1,16 @@
 {
   "name": "promptlib",
-  "version": "1.1.1",
+  "version": "1.0.1",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit",
-    "package": "electron-vite build && electron-builder --config electron-builder.yml",
-    "package:win": "electron-vite build && electron-builder --config electron-builder.yml --win",
-    "package:linux": "electron-vite build && electron-builder --config electron-builder.yml --linux",
-    "package:all": "electron-vite build && electron-builder --config electron-builder.yml --mac --win --linux"
+    "package": "electron-vite build && electron-builder --config electron-builder.yml"
   },
   "keywords": [],
-  "author": "Alexis Vivier <alexis@nevertoolate.studio>",
+  "author": "",
   "license": "ISC",
   "description": "Desktop app for writing and saving prompts in Markdown",
   "dependencies": {
@@ -27,6 +24,10 @@
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-i18next": "^17.0.2",
+    "y-codemirror.next": "^0.3.5",
+    "y-protocols": "^1.0.7",
+    "y-websocket": "^3.0.0",
+    "yjs": "^13.6.30",
     "zustand": "^5.0.12"
   },
   "devDependencies": {

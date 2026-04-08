@@ -1,38 +1,133 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import CodeMirror from '@uiw/react-codemirror'
 import { markdown } from '@codemirror/lang-markdown'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { EditorView } from '@codemirror/view'
+import { yCollab } from 'y-codemirror.next'
 import { usePromptStore } from '../../stores/promptStore'
+import { useUIStore } from '../../stores/uiStore'
+import { useAuthStore } from '../../stores/authStore'
 import { useResolvedDark } from '../../hooks/useTheme'
+import { useYjs } from '../../hooks/useYjs'
+
+function insertImageAtCursor(view: EditorView, uri: string): void {
+  const pos = view.state.selection.main.head
+  view.dispatch({ changes: { from: pos, insert: `![](${uri})` } })
+}
+
+async function handleImageFile(file: File, view: EditorView): Promise<void> {
+  const reader = new FileReader()
+  reader.onload = async () => {
+    const base64 = (reader.result as string).split(',')[1]
+    try {
+      const uri = await window.api.saveImage(base64, file.type)
+      insertImageAtCursor(view, uri)
+    } catch {
+      // silently fail if image save errors
+    }
+  }
+  reader.readAsDataURL(file)
+}
 
 export function MarkdownEditor() {
   const { activePrompt, updatePrompt } = usePromptStore()
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const setEditorView = useUIStore((s) => s.setEditorView)
+  const isRemote = useAuthStore((s) => s.isRemote)
   const isDark = useResolvedDark()
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Y.js only when connected to a server
+  const { ytext, provider, synced } = useYjs(isRemote() ? (activePrompt?.id ?? null) : null)
+
+  // Only use collab extension once Y.js has synced
+  const useCollab = !!(ytext && provider && synced)
+
+  // Local mode: debounced save
   const handleChange = useCallback(
     (value: string) => {
-      if (!activePrompt) return
-
-      if (timerRef.current) {
-        clearTimeout(timerRef.current)
-      }
-
+      if (!activePrompt || useCollab) return
+      if (timerRef.current) clearTimeout(timerRef.current)
       timerRef.current = setTimeout(() => {
         updatePrompt(activePrompt.id, { content: value })
       }, 500)
     },
-    [activePrompt, updatePrompt]
+    [activePrompt, updatePrompt, useCollab]
   )
+
+  const imageExtension = useMemo(
+    () =>
+      EditorView.domEventHandlers({
+        paste(event: ClipboardEvent, view: EditorView) {
+          const items = event.clipboardData?.items
+          if (!items) return false
+
+          for (const item of Array.from(items)) {
+            if (item.type.startsWith('image/')) {
+              event.preventDefault()
+              const file = item.getAsFile()
+              if (file) handleImageFile(file, view)
+              return true
+            }
+          }
+          return false
+        },
+        drop(event: DragEvent, view: EditorView) {
+          const files = event.dataTransfer?.files
+          if (!files) return false
+
+          for (const file of Array.from(files)) {
+            if (file.type.startsWith('image/')) {
+              event.preventDefault()
+              handleImageFile(file, view)
+              return true
+            }
+          }
+          return false
+        },
+        dragover(event: DragEvent) {
+          const types = event.dataTransfer?.types
+          if (types && Array.from(types).includes('Files')) {
+            event.preventDefault()
+            return true
+          }
+          return false
+        }
+      }),
+    []
+  )
+
+  // Y.js collaborative extension (only once synced)
+  const collabExtension = useMemo(() => {
+    if (!useCollab) return null
+    return yCollab(ytext!, provider!.awareness)
+  }, [useCollab, ytext, provider])
+
+  // Cleanup editorView ref on unmount
+  useEffect(() => {
+    return () => setEditorView(null)
+  }, [setEditorView])
 
   if (!activePrompt) return null
 
+  const extensions = [
+    markdown(),
+    EditorView.lineWrapping,
+    imageExtension,
+    ...(collabExtension ? [collabExtension] : [])
+  ]
+
+  // key forces remount when switching between local and collab mode
+  const editorKey = `${activePrompt.id}-${useCollab ? 'collab' : 'local'}`
+
   return (
     <CodeMirror
-      value={activePrompt.content}
-      onChange={handleChange}
-      extensions={[markdown(), EditorView.lineWrapping]}
+      key={editorKey}
+      {...(collabExtension
+        ? {}
+        : { value: activePrompt.content, onChange: handleChange }
+      )}
+      onCreateEditor={(view) => setEditorView(view)}
+      extensions={extensions}
       theme={isDark ? oneDark : undefined}
       className="h-full"
       basicSetup={{

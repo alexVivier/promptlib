@@ -2,6 +2,7 @@ import { useEffect, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { usePromptStore } from './stores/promptStore'
 import { useUIStore } from './stores/uiStore'
+import { useAuthStore } from './stores/authStore'
 import { Sidebar } from './components/layout/Sidebar'
 import { StatusBar } from './components/layout/StatusBar'
 import { MarkdownEditor } from './components/editor/MarkdownEditor'
@@ -15,6 +16,7 @@ import { useTheme } from './hooks/useTheme'
 export default function App() {
   const { loadPrompts, activePrompt } = usePromptStore()
   const { viewMode, sidebarOpen, showDeleteConfirm, splitRatio, setSplitRatio } = useUIStore()
+  const { loadServers, connectionStatus } = useAuthStore()
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
   const isDragging = useRef(false)
@@ -22,9 +24,15 @@ export default function App() {
   useKeyboard()
   useTheme()
 
+  // Load server list on mount
+  useEffect(() => {
+    loadServers()
+  }, [loadServers])
+
+  // Load prompts on mount and when connection status changes
   useEffect(() => {
     loadPrompts()
-  }, [loadPrompts])
+  }, [loadPrompts, connectionStatus])
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault()

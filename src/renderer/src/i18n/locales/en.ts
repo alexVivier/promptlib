@@ -73,6 +73,44 @@ export default {
   folderContextHint: '⌘ + Enter to save',
   save: 'Save',
 
+  // Images
+  image: 'Image',
+  insertImage: 'Insert image',
+  imageTooLarge: 'Image too large (max 10MB)',
+  unsupportedFormat: 'Unsupported image format',
+
   // Language
-  language: 'Language'
+  language: 'Language',
+
+  // Server panel
+  servers: 'Servers',
+  local: 'Local',
+  addServer: 'Add server',
+  editServer: 'Edit server',
+  serverName: 'Name',
+  connect: 'Connect',
+  disconnect: 'Disconnect',
+  connectedTo: 'Connected to server',
+  connectedAs: 'Connected as',
+  noServers: 'No servers configured. Add one to collaborate.',
+  password: 'Password',
+  displayName: 'Display name',
+  login: 'Log in',
+  signup: 'Sign up',
+  signupAndConnect: 'Sign up & Connect',
+  noAccount: "Don't have an account? Sign up",
+  hasAccount: 'Already have an account? Log in',
+  back: 'Back',
+  edit: 'Edit',
+
+  // Admin
+  admin: 'Admin',
+  users: 'Users',
+  active: 'Active',
+  inactive: 'Inactive',
+  activate: 'Activate',
+  deactivate: 'Deactivate',
+  noUsers: 'No users',
+  adminPanel: 'Administration',
+  userManagement: 'User management'
 } as const

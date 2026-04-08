@@ -3,23 +3,3 @@ out/
 dist/
 *.log
 .DS_Store
-
-# Environment & secrets
-.env
-.env.*
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Certificates & keys
-*.pem
-*.key
-*.p12
-*.pfx
-
-# Build artifacts
-coverage/
-*.tsbuildinfo

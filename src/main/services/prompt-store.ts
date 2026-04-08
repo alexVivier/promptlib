@@ -3,6 +3,7 @@ import { join } from 'path'
 import { readFileSync, writeFileSync, mkdirSync, unlinkSync, existsSync, renameSync } from 'fs'
 import { randomUUID } from 'crypto'
 import type { Prompt, PromptMeta } from '../../shared/types'
+import { cleanupOrphanedImages } from './image-store'
 
 const DATA_DIR = join(app.getPath('userData'), 'prompts')
 const INDEX_PATH = join(app.getPath('userData'), 'index.json')
@@ -100,6 +101,16 @@ export function deletePrompt(id: string): void {
   const index = readIndex()
   const filtered = index.filter((p) => p.id !== id)
   writeIndex(filtered)
+
+  // Clean up orphaned images
+  const allContents = filtered.map((meta) => {
+    try {
+      return getPrompt(meta.id).content
+    } catch {
+      return ''
+    }
+  })
+  cleanupOrphanedImages(allContents)
 }
 
 export function getFolders(): string[] {
@@ -131,9 +142,6 @@ export function createFolder(folderPath: string): void {
     customFolders = JSON.parse(readFileSync(foldersFile, 'utf-8'))
   }
   const normalized = folderPath.startsWith('/') ? folderPath : `/${folderPath}`
-  if (normalized.includes('..') || normalized.includes('\0')) {
-    throw new Error('Invalid folder path')
-  }
   if (!customFolders.includes(normalized)) {
     customFolders.push(normalized)
     writeFileSync(foldersFile, JSON.stringify(customFolders, null, 2), 'utf-8')
@@ -143,9 +151,6 @@ export function createFolder(folderPath: string): void {
 export function renameFolder(oldPath: string, newPath: string): void {
   const index = readIndex()
   const normalized = newPath.startsWith('/') ? newPath : `/${newPath}`
-  if (normalized.includes('..') || normalized.includes('\0')) {
-    throw new Error('Invalid folder path')
-  }
 
   for (const meta of index) {
     if (meta.folder === oldPath) {

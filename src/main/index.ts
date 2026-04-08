@@ -1,8 +1,16 @@
-import { app, BrowserWindow, shell, Menu, globalShortcut, ipcMain, screen } from 'electron'
+import { app, BrowserWindow, shell, Menu, globalShortcut, ipcMain, screen, protocol, net } from 'electron'
 import { join } from 'path'
 import { registerIpcHandlers } from './ipc'
 import { getMenuLabels } from './menu-labels'
 import { getSettings } from './services/settings-store'
+import * as imageStore from './services/image-store'
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'promptlib-image',
+    privileges: { standard: true, secure: true, supportFetchAPI: true }
+  }
+])
 
 const isDev = !app.isPackaged
 const isMac = process.platform === 'darwin'
@@ -10,9 +18,9 @@ const isMac = process.platform === 'darwin'
 let mainWindow: BrowserWindow | null = null
 let paletteWindow: BrowserWindow | null = null
 
-function buildMenu(): void {
-  const settings = getSettings()
-  const labels = getMenuLabels(settings.language)
+function buildMenu(lang?: 'fr' | 'en' | 'es' | 'pt' | 'de'): void {
+  const resolvedLang = lang ?? getSettings().language
+  const labels = getMenuLabels(resolvedLang)
 
   const menuTemplate: Electron.MenuItemConstructorOptions[] = [
     ...(isMac
@@ -101,9 +109,7 @@ function createWindow(): void {
     titleBarStyle: 'hiddenInset',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      contextIsolation: true,
-      sandbox: true,
-      nodeIntegration: false
+      sandbox: false
     }
   })
 
@@ -151,9 +157,7 @@ function createPaletteWindow(): void {
     backgroundColor: '#00000000',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      contextIsolation: true,
-      sandbox: true,
-      nodeIntegration: false
+      sandbox: false
     }
   })
 
@@ -206,12 +210,22 @@ app.whenReady().then(() => {
   buildMenu()
   registerIpcHandlers()
 
+  protocol.handle('promptlib-image', (request) => {
+    const filename = request.url.replace('promptlib-image://', '')
+    const filePath = imageStore.getImagePath(filename)
+    return net.fetch(`file://${filePath}`)
+  })
+
   ipcMain.handle('hide-palette', () => {
     hidePalette()
   })
 
-  ipcMain.handle('rebuild-menu', () => {
-    buildMenu()
+  ipcMain.handle('resize-palette', () => {
+    // No-op: palette window is now full-screen with CSS-based layout
+  })
+
+  ipcMain.handle('rebuild-menu', (_, lang?: string) => {
+    buildMenu(lang as 'fr' | 'en' | 'es' | 'pt' | 'de' | undefined)
   })
 
   createWindow()

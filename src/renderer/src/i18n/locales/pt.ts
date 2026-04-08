@@ -73,6 +73,44 @@ export default {
   folderContextHint: '⌘ + Enter para salvar',
   save: 'Salvar',
 
+  // Images
+  image: 'Imagem',
+  insertImage: 'Inserir imagem',
+  imageTooLarge: 'Imagem muito grande (máx. 10 MB)',
+  unsupportedFormat: 'Formato de imagem não suportado',
+
   // Language
-  language: 'Idioma'
+  language: 'Idioma',
+
+  // Server panel
+  servers: 'Servidores',
+  local: 'Local',
+  addServer: 'Adicionar servidor',
+  editServer: 'Editar servidor',
+  serverName: 'Nome',
+  connect: 'Conectar',
+  disconnect: 'Desconectar',
+  connectedTo: 'Conectado ao servidor',
+  connectedAs: 'Conectado como',
+  noServers: 'Nenhum servidor configurado. Adicione um para colaborar.',
+  password: 'Senha',
+  displayName: 'Nome de exibição',
+  login: 'Entrar',
+  signup: 'Criar conta',
+  signupAndConnect: 'Criar conta e conectar',
+  noAccount: 'Não tem conta? Crie uma',
+  hasAccount: 'Já tem conta? Entre',
+  back: 'Voltar',
+  edit: 'Editar',
+
+  // Admin
+  admin: 'Admin',
+  users: 'Usuários',
+  active: 'Ativo',
+  inactive: 'Inativo',
+  activate: 'Ativar',
+  deactivate: 'Desativar',
+  noUsers: 'Nenhum usuário',
+  adminPanel: 'Administração',
+  userManagement: 'Gerenciamento de usuários'
 } as const

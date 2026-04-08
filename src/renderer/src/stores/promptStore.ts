@@ -41,7 +41,7 @@ export const usePromptStore = create<PromptState>((set, get) => ({
       window.api.getFolders(),
       window.api.getAllTags()
     ])
-    set({ prompts, folders, tags, loading: false })
+    set({ prompts, folders, tags, loading: false, activePromptId: null, activePrompt: null })
   },
 
   loadPrompt: async (id: string) => {
